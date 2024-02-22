@@ -1,0 +1,71 @@
+//Acid
+package samplepack;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Scanner;
+public class acid {
+   private static final String URL = "jdbc:sqlserver://172.16.51.64;databaseName=231047010;encrypt=true;trustServerCertificate=true";
+   private static final String USERNAME = "LEKHA";
+   private static final String PASSWORD = "lekha@321";
+   public static void main(String[] args) {
+       Connection con = null;
+       Scanner sc = new Scanner(System.in);
+       try {
+           con = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+           con.setAutoCommit(false);
+           System.out.println("Connection established");
+           System.out.println("Enter the ID of the student");
+           int studentId = sc.nextInt();
+           System.out.println("Enter the name of the student");
+           String studentName = sc.next();
+           System.out.println("Enter the GPA of the student");
+           double gpa = sc.nextDouble();
+           // Insert student details into the database
+           insertStudent(con, studentId, studentName, gpa);
+           // Commit the transaction
+           con.commit();
+           System.out.println("Transaction committed successfully");
+       } catch (SQLException e) {
+           System.out.println("Error Occurred: " + e.getMessage());
+           try {
+               if (con != null) {
+                   con.rollback();
+                   System.out.println("Transaction rolled back");
+               }
+           } catch (SQLException rollbackException) {
+               rollbackException.printStackTrace();
+           }
+       } finally {
+           try {
+               if (con != null) {
+                   con.setAutoCommit(true);
+                   con.close();
+                   System.out.println("Connection Closed");
+               }
+           } catch (SQLException closeException) {
+               closeException.printStackTrace();
+           }
+       }
+   }
+   private static void insertStudent(Connection con, int studentId, String studentName, double gpa) throws SQLException {
+       String insertQuery = "INSERT INTO Student (StudentID, StudentName, GPA) VALUES (?, ?, ?)";
+       try (PreparedStatement pstmt = con.prepareStatement(insertQuery)) {
+           pstmt.setInt(1, studentId);
+           pstmt.setString(2, studentName);
+           pstmt.setDouble(3, gpa);
+           pstmt.executeUpdate();
+           System.out.println("Student inserted successfully");
+       }
+   }
+}
+
+//table
+CREATE TABLE Student (
+   StudentID INT PRIMARY KEY,
+   StudentName VARCHAR(50),
+   GPA DECIMAL(3, 2)
+);
+
+

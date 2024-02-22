@@ -1,0 +1,70 @@
+//two phase
+package samplepack;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Scanner;
+public class twoPhase {
+   private static final String DB1_URL = "jdbc:sqlserver://172.16.51.64;databaseName=231047010;encrypt=true;trustServerCertificate=true";
+   private static final String DB1_USERNAME = "LEKHA";
+   private static final String DB1_PASSWORD = "lekha@321";
+   private static final String DB2_URL = "jdbc:sqlserver://172.16.51.64;databaseName=231047005;encrypt=true;trustServerCertificate=true";
+   private static final String DB2_USERNAME = "AKSHAYA";
+   private static final String DB2_PASSWORD = "aks@457";
+   public static void main(String[] args) {
+       Connection con1 = null;
+       Connection con2 = null;
+       Scanner sc = new Scanner(System.in);
+       try {
+           // Connect to database 1
+           con1 = DriverManager.getConnection(DB1_URL, DB1_USERNAME, DB1_PASSWORD);
+           con1.setAutoCommit(false);
+           // Connect to database 2
+           con2 = DriverManager.getConnection(DB2_URL, DB2_USERNAME, DB2_PASSWORD);
+           con2.setAutoCommit(false);
+           // Perform inserts on both databases
+           System.out.println("Connection established");
+           System.out.println("Enter the ID of the student");
+           int studentId = sc.nextInt();
+           System.out.println("Enter the name of the student");
+           String studentName = sc.next();
+           System.out.println("Enter the GPA of the student");
+           double gpa = sc.nextDouble();
+           // Insert student details into the database
+           insertStudent(con1, studentId, studentName, gpa);
+           insertStudent(con2, studentId, studentName, gpa);
+           // If both inserts succeed, commit transactions
+           con1.commit();
+           con2.commit();
+           System.out.println("Transactions committed successfully.");
+       } catch (SQLException e) {
+           System.out.println("Error occurred: " + e.getMessage());
+           try {
+               // Rollback both transactions if any insert fails
+               if (con1 != null) con1.rollback();
+               if (con2 != null) con2.rollback();
+           } catch (SQLException rollbackException) {
+               rollbackException.printStackTrace();
+           }
+       } finally {
+           try {
+               // Close connections
+               if (con1 != null) con1.close();
+               if (con2 != null) con2.close();
+           } catch (SQLException closeException) {
+               closeException.printStackTrace();
+           }
+       }
+   }
+   private static void insertStudent(Connection con, int studentId, String studentName, double gpa) throws SQLException {
+       String insertQuery = "INSERT INTO Student (StudentID, StudentName, GPA) VALUES (?, ?, ?)";
+       try (PreparedStatement pstmt = con.prepareStatement(insertQuery)) {
+           pstmt.setInt(1, studentId);
+           pstmt.setString(2, studentName);
+           pstmt.setDouble(3, gpa);
+           pstmt.executeUpdate();
+           System.out.println("Student inserted successfully");
+       }
+   }
+}

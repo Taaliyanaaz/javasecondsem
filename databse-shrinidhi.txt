@@ -1,0 +1,101 @@
+package com.pro;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet("/subtract")
+public class subtract extends HttpServlet {
+	static Connection connect = null;
+	private static final long serialVersionUID = 1L;
+
+//	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+//		// TODO Auto-generated method stub
+//		response.getWriter().append("Served at: ").append(request.getContextPath());
+//	}
+
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		// doGet(request, response);
+		// response.getWriter().append("Served at: ").append(request.getContextPath());
+		response.setContentType("text/html");
+		PrintWriter out = response.getWriter();
+		out.println("<html><head>");
+		out.println("<title>Sum of Numbers</title>");
+		out.println("<style>");
+		out.println(
+				"body { font-family: Arial, sans-serif; background-image: linear-gradient(skyblue,green); }"); // Specify
+																																		// background
+																																		// color
+																																		// here
+		out.println("</style>");
+		out.println("</head><body>");
+		
+		PrintWriter pw = response.getWriter();
+		int num1 = Integer.parseInt(request.getParameter("num1"));
+	    int num2 = Integer.parseInt(request.getParameter("num2"));
+		int sum = num1 - num2;
+		pw.println("Subtract :"+sum);
+		// out.println("<html><body >");
+		openConnection();
+
+		try {
+			Statement stmt = connect.createStatement();
+
+			// Execute a query
+			String sql = "SELECT * FROM Number";
+			ResultSet rs = stmt.executeQuery(sql);
+
+			// Display the result set
+			out.println("<table>");
+		    out.println("<tr><th>ID</th><th>Num1</th><th>Num2</th><th>SUM</th></tr>");
+		    while (rs.next()) {
+		        out.println("<tr >");
+		        out.println("<td>" + rs.getInt("id") + "</td>");
+		        out.println("<td>" + rs.getInt("num1") + "</td>");
+		        out.println("<td>" + rs.getInt("num2") + "</td>");
+		        out.println("<td>" + rs.getInt("sum") + "</td>");
+		        out.println("</tr>");
+		    }
+		    out.println("</table>");
+			// Clean-up environment
+			rs.close();
+			stmt.close();
+			connect.close();
+			out.println("</body></html>");
+		} catch (Exception e) {
+			System.out.println("catch it" + e.getMessage());
+		}
+	}
+
+	private void openConnection() {
+		// TODO Auto-generated method stub
+		String connectionUrl = "jdbc:sqlserver://172.16.51.64;databaseName=231047014;encrypt=true;"
+				+ "trustServerCertificate=true;user=SHRINIDHI;password=shrinidhi@1";
+
+		try {
+			//To load jdbc driver
+			Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");   //imp
+			connect = DriverManager.getConnection(connectionUrl);
+			System.out.println("Connection Successful");
+		} catch (SQLException e) {
+			System.out.println(e.getMessage());
+			// e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+}

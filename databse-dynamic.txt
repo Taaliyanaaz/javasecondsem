@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+   <title>Addition in HTML</title>
+
+</head>
+
+<body>
+
+
+
+
+<h2>Addition Example</h2>
+
+
+
+
+<p>Enter two numbers to add:</p>
+
+<!-- <input type="text" id="num1">
+
++
+
+<input type="text" id="num2">
+
+<button onclick="add()">Add</button> -->
+
+<form action="AddNumbersServlet" method="post">
+
+       <label for="num1">Enter first number:</label>
+
+       <input type="number" id="num1" name="num1" required><br><br>
+
+       <label for="num2">Enter second number:</label>
+
+       <input type="number" id="num2" name="num2" required><br><br>
+
+       <button type="submit" onclick="add()">Add</button>
+
+</form>
+
+
+
+
+
+
+
+<p>Result: <span id="result"></span></p>
+
+
+
+
+<script>
+
+   function add() {
+
+    var num1 = document.getElementById("num1").value;
+
+       var num2 = document.getElementById("num2").value;
+
+
+
+
+       // Check if num1 is empty or not a valid number
+
+       if (num1 === "" || isNaN(num1)) {
+
+           num1 = "0";
+
+       }
+
+
+
+
+       // Check if num2 is empty or not a valid number
+
+       if (num2 === "" || isNaN(num2)) {
+
+           num2 = "0";
+
+       }
+
+
+
+
+       // Parse num1 and num2 as floats
+
+       var parsedNum1 = parseFloat(num1);
+
+       var parsedNum2 = parseFloat(num2);
+
+
+
+
+       // Calculate sum
+
+       var sum = parsedNum1 + parsedNum2;
+
+
+
+
+       // Update result element with the sum
+
+       document.getElementById("result").innerHTML = sum;
+
+   }
+
+</script>
+
+
+
+
+</body>
+
+</html>
+
+
+import java.io.IOException;
+
+import java.io.PrintWriter;
+
+import java.sql.Connection;
+
+import java.sql.DriverManager;
+
+import java.sql.PreparedStatement;
+
+import jakarta.servlet.ServletException;
+
+import jakarta.servlet.annotation.WebServlet;
+
+import jakarta.servlet.http.HttpServlet;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+import jakarta.servlet.http.HttpServletResponse;
+
+
+
+
+@WebServlet("/AddNumbersServlet")
+
+public class AddNumbersServlet extends HttpServlet {
+
+   private static final long serialVersionUID = 1L;
+
+
+
+
+   protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+       response.setContentType("text/html");
+
+       PrintWriter out = response.getWriter();
+
+
+
+
+       // Retrieve form parameters
+
+       int num1 = Integer.parseInt(request.getParameter("num1"));
+
+       int num2 = Integer.parseInt(request.getParameter("num2"));
+
+       int sum = num1 + num2;
+
+
+
+
+       try {
+
+           // Connect to MSSQL database
+
+           Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+
+           Connection con = DriverManager.getConnection("jdbc:sqlserver://172.16.51.64:1433;databaseName=231047030;encrypt=true;trustServerCertificate=true", "MANISH", "manish@567");
+
+
+
+
+           // Insert data into the database
+
+           PreparedStatement ps = con.prepareStatement("INSERT INTO numbers (num1, num2, sum) VALUES (?, ?, ?)");
+
+           ps.setInt(1, num1);
+
+           ps.setInt(2, num2);
+
+           ps.setInt(3, sum);
+
+           int rowsAffected = ps.executeUpdate();
+
+           if (rowsAffected > 0) {
+
+               out.println("<h3>Numbers added successfully. Sum: " + sum + "</h3>");
+
+           } else {
+
+               out.println("<h3>Failed to add numbers.</h3>");
+
+           }
+
+
+
+
+           con.close();
+
+       } catch (Exception e) {
+
+           out.println("<h3>Error: " + e.getMessage() + "</h3>");
+
+       }
+
+
+
+
+       out.close();
+
+   }
+
+}
